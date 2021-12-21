@@ -1,3 +1,3 @@
 
-Hi, click [here](https://acastroaraujo.github.io/sicss_survey/) for the latest results.
+Hi, click [here](https://acastroaraujo.github.io/sicss_survey/results.html) for the latest results.
 
