@@ -1,0 +1,158 @@
+---
+title: "Survey Results"
+author: "prepared by andrés castro araújo"
+date: "Last Updated: `r format(Sys.Date())`"
+output: 
+  html_document: 
+    theme: lumen
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center", comment = "", 
+                      message = FALSE, warning = FALSE)
+
+library(tidyverse)
+source("prepareData.R")
+source("helper-functions.R")
+
+library(DT)
+library(sf)
+library(spData)
+
+theme_set(theme_light(base_family = "Avenir Next Condensed"))
+```
+
+## Basics
+
+-   Number of people who clicked on the survey:
+
+    `r nrow(df)`
+
+-   Number of respondents (people who finished the survey):
+
+    `r nrow(df_clean)`
+
+-   Number of respondents who clicked on the "I did not start a project at SICSS" option:
+
+    `r sum(df_clean$type_1 == "I did not start a project at SICSS")`
+
+-   Number of projects:
+
+    `r sum(df_clean$type_1 != "I did not start a project at SICSS")`
+
+-   Number of times the respondent has participated in a SICSS event:
+
+    ```{r}
+    df_clean$year |> map_dbl(length) |> table(dnn = "times")
+    ```
+
+-   Years:
+
+    ```{r}
+    df_clean$year |> unlist() |> table(dnn = "years")
+    ```
+
+-   SICSS Locations:
+
+    ```{r}
+    df_clean |> 
+      unnest(site) |> 
+      mutate(site = standardize_site(site)) |> 
+      count(site, sort = TRUE) |> 
+      DT::datatable()
+    ```
+
+-   Respondent Locations:
+
+    Qualtrics only calculated this for the people who finished the survey. It did so automatically, I wasn't planning on collecting this data, but it looks good.
+
+    ```{r}
+    library(sf)
+    library(spData)
+
+    world_map <- spData::world %>% 
+      sf::st_transform(crs = sf::st_crs(4326)) %>% 
+      sf::st_transform("+proj=moll")
+
+    map_points <- df_clean |> 
+      sf::st_as_sf(
+        coords = c("location_longitude", "location_latitude"), 
+        crs = sf::st_crs(4326)
+      ) %>% 
+      sf::st_transform("+proj=moll")
+
+    world_map %>% 
+      ggplot() + 
+      geom_sf(color = NA) +
+      geom_sf(data = map_points, size = 1/2, alpha = 1/2) +
+      coord_sf(crs = "+proj=moll") +
+      theme_void()
+    ```
+
+## Projects
+
+-   Type of project:
+
+    ```{r}
+    df_long |> 
+      count(type, sort = TRUE) |> 
+      DT::datatable()
+    ```
+
+-   Most common publications:
+
+    ```{r}
+    df_long |> 
+      filter(type == "Publication") |> 
+      count(publication, sort = TRUE) |> 
+      DT::datatable()
+    ```
+
+-   Software
+
+    ```{r}
+    df_long |> 
+      filter(type == "Software") |> 
+      select(name, proj, website) |> 
+      DT::datatable()
+    ```
+
+-   Community building
+
+    ```{r}
+    df_long |> 
+      filter(type == "Community-building initiative") |> 
+      select(name, proj, website) |> 
+      DT::datatable()
+    ```
+
+-   Class or curriculum
+
+    ```{r}
+    df_long |> 
+      filter(type == "Class or curriculum") |> 
+      select(name, proj, website) |> 
+      DT::datatable()
+    ```
+
+-   Other
+
+    ```{r}
+    df_long |> 
+      filter(type == "Other") |> 
+      select(name, proj, website) |> 
+      DT::datatable()
+    ```
+
+## Open ended question
+
+```{r}
+df_oe <- df_clean |> 
+  filter(!is.na(open_ended))
+
+for (i in 1:nrow(df_oe)) {
+  cat(df_oe$name[[i]], ":", "\n", str_trim(df_oe$open_ended[[i]]), "\n\n***\n\n")
+}
+```
