@@ -1,7 +1,7 @@
 
 library(tidyverse)
 
-data_path <- "data/SICSS Projects_December 21, 2021_09.06.csv"
+data_path <- "data/SICSS Projects_December 28, 2021_09.48.csv"
 
 types <- cols(
   StartDate = col_datetime(format = ""),
@@ -88,7 +88,10 @@ df_clean <- df |>
   filter(finished == TRUE) |> 
   rename(open_ended = opend_ended) |> 
   select(-all_of(s_remove)) |> 
-  relocate(response_id)
+  relocate(response_id) |> 
+  # clean some NAs
+  mutate(across(where(is.character), \(x) ifelse(x == "N/A", NA_character_, as.character(x))))
+
 
 df_clean <- df_clean |> 
   ## nest multiple years

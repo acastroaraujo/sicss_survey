@@ -86,7 +86,7 @@ theme_set(theme_light(base_family = "Avenir Next Condensed"))
     world_map %>% 
       ggplot() + 
       geom_sf(color = NA) +
-      geom_sf(data = map_points, size = 1/2, alpha = 1/2) +
+      geom_sf(data = map_points, size = 1/2, alpha = 1/2, color = "steelblue") +
       coord_sf(crs = "+proj=moll") +
       theme_void()
     ```
